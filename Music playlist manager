@@ -1,0 +1,175 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Define a structure for Song
+struct Song {
+    char title[100];
+    char artist[100];
+    float duration; // Duration in minutes
+    struct Song* next;
+};
+
+// Function to add a song to the playlist
+void add_song(struct Song** head) {
+    struct Song* new_song = (struct Song*)malloc(sizeof(struct Song));
+    printf("Enter song title: ");
+    getchar(); // To clear the newline character left by previous input
+    fgets(new_song->title, sizeof(new_song->title), stdin);
+    new_song->title[strcspn(new_song->title, "\n")] = '\0'; // Remove newline character
+    
+    printf("Enter artist name: ");
+    fgets(new_song->artist, sizeof(new_song->artist), stdin);
+    new_song->artist[strcspn(new_song->artist, "\n")] = '\0'; // Remove newline character
+
+    printf("Enter song duration (in minutes): ");
+    scanf("%f", &new_song->duration);
+
+    new_song->next = NULL;
+
+    // Add the new song to the end of the playlist
+    if (*head == NULL) {
+        *head = new_song;
+    } else {
+        struct Song* temp = *head;
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = new_song;
+    }
+
+    printf("Song '%s' added to the playlist.\n", new_song->title);
+}
+
+// Function to display the playlist
+void display_playlist(struct Song* head) {
+    if (head == NULL) {
+        printf("Playlist is empty!\n");
+        return;
+    }
+
+    printf("\n--- Playlist ---\n");
+    struct Song* temp = head;
+    while (temp != NULL) {
+        printf("Title: %s, Artist: %s, Duration: %.2f mins\n", temp->title, temp->artist, temp->duration);
+        temp = temp->next;
+    }
+}
+
+// Function to delete a song by title
+void delete_song(struct Song** head, char* title) {
+    if (*head == NULL) {
+        printf("Playlist is empty!\n");
+        return;
+    }
+
+    struct Song* temp = *head;
+    struct Song* prev = NULL;
+
+    // If the song to be deleted is the first song
+    if (temp != NULL && strcmp(temp->title, title) == 0) {
+        *head = temp->next;
+        free(temp);
+        printf("Song '%s' deleted from playlist.\n", title);
+        return;
+    }
+
+    // Search for the song to be deleted
+    while (temp != NULL && strcmp(temp->title, title) != 0) {
+        prev = temp;
+        temp = temp->next;
+    }
+
+    // If the song is not found
+    if (temp == NULL) {
+        printf("Song '%s' not found in playlist!\n", title);
+        return;
+    }
+
+    // Unlink the song from the list
+    prev->next = temp->next;
+    free(temp);
+    printf("Song '%s' deleted from playlist.\n", title);
+}
+
+// Function to search for a song by title
+void search_song(struct Song* head, char* title) {
+    struct Song* temp = head;
+    while (temp != NULL) {
+        if (strcmp(temp->title, title) == 0) {
+            printf("Song Found: Title: %s, Artist: %s, Duration: %.2f mins\n", temp->title, temp->artist, temp->duration);
+            return;
+        }
+        temp = temp->next;
+    }
+    printf("Song '%s' not found in playlist!\n", title);
+}
+
+// Function to calculate and display the total duration of the playlist
+void get_total_duration(struct Song* head) {
+    if (head == NULL) {
+        printf("Playlist is empty!\n");
+        return;
+    }
+
+    float total_duration = 0.0;
+    struct Song* temp = head;
+    while (temp != NULL) {
+        total_duration += temp->duration;
+        temp = temp->next;
+    }
+    printf("Total playlist duration: %.2f mins\n", total_duration);
+}
+
+// Main function
+int main() {
+    struct Song* playlist = NULL;
+    int choice;
+    char title[100];
+
+    while (1) {
+        printf("\n--- Music Playlist Manager ---\n");
+        printf("1. Add a Song\n");
+        printf("2. Display Playlist\n");
+        printf("3. Delete a Song\n");
+        printf("4. Search for a Song\n");
+        printf("5. Get Total Playlist Duration\n");
+        printf("6. Exit\n");
+
+        printf("Enter your choice (1-6): ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                add_song(&playlist);
+                break;
+            case 2:
+                display_playlist(playlist);
+                break;
+            case 3:
+                printf("Enter the song title to delete: ");
+                getchar(); // Clear the newline
+                fgets(title, sizeof(title), stdin);
+                title[strcspn(title, "\n")] = '\0'; // Remove newline character
+                delete_song(&playlist, title);
+                break;
+            case 4:
+                printf("Enter the song title to search for: ");
+                getchar(); // Clear the newline
+                fgets(title, sizeof(title), stdin);
+                title[strcspn(title, "\n")] = '\0'; // Remove newline character
+                search_song(playlist, title);
+                break;
+            case 5:
+                get_total_duration(playlist);
+                break;
+            case 6:
+                printf("Exiting the program. Goodbye!\n");
+                exit(0);
+            default:
+                printf("Invalid choice! Please choose a valid option.\n");
+        }
+    }
+
+    return 0;
+}
